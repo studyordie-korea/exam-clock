@@ -57,35 +57,13 @@
         .logo-container {
             display: flex;
             align-items: center;
-            gap: 1rem;
         }
 
-        /* 로고 크기 확대 및 업로드 영역 */
-        .logo-preview {
+        /* 고정된 학교 로고 스타일 */
+        .school-logo {
             max-height: 80px;
             max-width: 250px;
             object-fit: contain;
-            display: none;
-            cursor: pointer;
-        }
-
-        .logo-upload-label {
-            font-size: 0.95rem;
-            color: var(--sub-text-color);
-            cursor: pointer;
-            padding: 0.6rem 1.2rem;
-            border: 1px dashed var(--sub-text-color);
-            border-radius: 6px;
-            background: transparent;
-            transition: all 0.2s;
-        }
-
-        .logo-upload-label:hover, .logo-preview:hover {
-            opacity: 0.8;
-        }
-
-        #logo-input {
-            display: none;
         }
 
         .controls {
@@ -177,10 +155,8 @@
 
     <header>
         <div class="logo-container">
-            <!-- 라벨이나 로고 이미지를 누르면 언제든 새 이미지로 교체 가능 -->
-            <label for="logo-input" class="logo-upload-label" id="upload-label">+ 학교 로고 업로드</label>
-            <input type="file" id="logo-input" accept="image/*">
-            <img src="dgu.png" class="school-logo">
+            <!-- dgu.png 로고 고정 출력 -->
+            <img src="dgu.png" class="school-logo" alt="학교 로고" onerror="this.style.display='none';">
         </div>
         <div class="controls">
             <button id="theme-btn">다크 모드</button>
@@ -189,7 +165,7 @@
     </header>
 
     <main class="clock-main">
-        <div class="location-text"> </div>
+        <div class="location-text"></div>
         <div class="time-display-wrapper">
             <div class="ampm" id="ampm">오전</div>
             <div class="digital-clock">
@@ -202,6 +178,7 @@
     <footer></footer>
 
     <script>
+        // 시계 및 날짜 업데이트 함수
         function updateClock() {
             const now = new Date();
             let hours = now.getHours();
@@ -229,41 +206,6 @@
 
         setInterval(updateClock, 1000);
         updateClock();
-
-        // 로고 저장 및 불러오기 (LocalStorage 활용, 클릭 시 변경 가능)
-        const logoInput = document.getElementById('logo-input');
-        const logoPreview = document.getElementById('logo-preview');
-        const uploadLabel = document.getElementById('upload-label');
-
-        logoPreview.addEventListener('click', () => {
-            logoInput.click();
-        });
-
-        const savedLogo = localStorage.getItem('school_logo');
-        if (savedLogo) {
-            logoPreview.src = savedLogo;
-            logoPreview.style.display = 'block';
-            uploadLabel.style.display = 'none';
-        }
-
-        logoInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const base64Data = event.target.result;
-                    try {
-                        localStorage.setItem('school_logo', base64Data);
-                        logoPreview.src = base64Data;
-                        logoPreview.style.display = 'block';
-                        uploadLabel.style.display = 'none';
-                    } catch (err) {
-                        alert('이미지 용량이 너무 큽니다. 더 작은 용량의 이미지(PNG, JPG)를 업로드해 주세요.');
-                    }
-                }
-                reader.readAsDataURL(file);
-            }
-        });
 
         // 다크/라이트 모드 전환
         const themeBtn = document.getElementById('theme-btn');
@@ -303,14 +245,13 @@
                     wakeLock = await navigator.wakeLock.request('screen');
                 }
             } catch (err) {
-                // Wake Lock 거절/무시 예외 처리
+                // Wake Lock 예외 무시
             }
         }
 
         window.addEventListener('load', requestWakeLock);
         document.addEventListener('visibilitychange', requestWakeLock);
         
-        // 사용자가 화면을 터치하거나 마우스를 움직일 때도 잠금 유지 갱신
         ['click', 'mousemove', 'keydown'].forEach(event => {
             document.addEventListener(event, () => {
                 if (!wakeLock || wakeLock.released) {
