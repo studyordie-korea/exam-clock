@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>시험용 디지털 시계 (유튜브 자동 재생 테스트)</title>
-    <!-- 구글 폰트: Oxanium(디지털 숫자) 및 Noto Sans KR -->
+    <title>시험용 디지털 시계 (유튜브 자동 재생)</title>
     <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@600;700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -141,14 +140,13 @@
             margin-top: 0.5rem;
         }
 
-        /* 유튜브 재생 오버레이 모달 창 스타일 */
         #youtube-modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background-color: rgba(0, 0, 0, 0.9);
+            background-color: rgba(0, 0, 0, 0.95);
             display: none;
             justify-content: center;
             align-items: center;
@@ -157,10 +155,10 @@
         }
 
         .video-container {
-            width: 80vw;
-            height: 80vh;
-            max-width: 1280px;
-            max-height: 720px;
+            width: 90vw;
+            height: 85vh;
+            max-width: 1440px;
+            max-height: 810px;
         }
 
         .video-container iframe {
@@ -199,7 +197,7 @@
     </header>
 
     <main class="clock-main">
-        <div class="location-text">안내 영상 자동 재생 테스트 중</div>
+        <div class="location-text">시험 안내 영상 자동 재생 대기 중</div>
         <div class="time-display-wrapper">
             <div class="ampm" id="ampm">오전</div>
             <div class="digital-clock">
@@ -213,21 +211,20 @@
     <div id="youtube-modal">
         <div class="notice-text">시험 안내 영상 재생 중 (1분 30초 후 시계로 복귀합니다)</div>
         <div class="video-container">
-            <iframe id="yt-player" src="" allow="autoplay"></iframe>
+            <!-- 전체화면 및 자동재생 권한(allowfullscreen, allow) 대폭 강화 -->
+            <iframe id="yt-player" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
         </div>
     </div>
 
     <footer></footer>
 
     <script>
-        // 테스트할 시간 설정 (예: 오후 4시 40분 0초로 테스트하려면 아래 수정)
         const targetHour = 16;
-        const targetMinute = 40;
+        const targetMinute = 45;
         const targetSecond = 0;
         
-        // 재생할 유튜브 영상의 ID만 입력하세요 (예: https://youtu.be/6bNQtSp0L1U 라면 '6bNQtSp0L1U' 입력)
         const youtubeVideoId = '6bNQtSp0L1U'; 
-        const playDurationSeconds = 90; // 1분 30초 (90초)
+        const playDurationSeconds = 100; 
 
         let isVideoPlayed = false;
 
@@ -237,7 +234,6 @@
             const minutes = now.getMinutes();
             const seconds = now.getSeconds();
             
-            // 지정된 시간이 되면 하루에 딱 한 번 실행
             if (!isVideoPlayed && hours === targetHour && minutes === targetMinute && seconds >= targetSecond) {
                 startYoutubePlayback();
             }
@@ -260,27 +256,23 @@
             document.getElementById('date').textContent = `${year}년 ${month}월 ${day}일 ${week}`;
         }
 
-        // 유튜브 재생 시작 함수
         function startYoutubePlayback() {
             isVideoPlayed = true;
             const modal = document.getElementById('youtube-modal');
             const player = document.getElementById('yt-player');
             
-            // 올바른 유튜브 임베드 주소 조합 (중복 ? 방지)
-            player.src = `https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1`;
+            player.src = `https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&enablejsapi=1`;
             modal.style.display = 'flex';
 
-            // 1분 30초(90초) 뒤에 모달을 닫고 시계 화면으로 복귀
             setTimeout(() => {
                 modal.style.display = 'none';
-                player.src = ''; // 영상 정지 및 초기화
+                player.src = ''; 
             }, playDurationSeconds * 1000);
         }
 
         setInterval(updateClock, 1000);
         updateClock();
 
-        // 다크/라이트 모드 전환
         const themeBtn = document.getElementById('theme-btn');
         const body = document.body;
 
@@ -294,7 +286,6 @@
             }
         });
 
-        // 전체화면 토글
         const fullscreenBtn = document.getElementById('fullscreen-btn');
         fullscreenBtn.addEventListener('click', () => {
             if (!document.fullscreenElement) {
@@ -310,7 +301,6 @@
             }
         });
 
-        // 스크린세이버 및 절전모드 방지
         let wakeLock = null;
         async function requestWakeLock() {
             try {
