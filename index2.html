@@ -199,7 +199,7 @@
     </header>
 
     <main class="clock-main">
-        <div class="location-text">오후 5시 안내 영상 자동 재생 테스트 중</div>
+        <div class="location-text">안내 영상 자동 재생 테스트 중</div>
         <div class="time-display-wrapper">
             <div class="ampm" id="ampm">오전</div>
             <div class="digital-clock">
@@ -213,7 +213,6 @@
     <div id="youtube-modal">
         <div class="notice-text">시험 안내 영상 재생 중 (1분 30초 후 시계로 복귀합니다)</div>
         <div class="video-container">
-            <!-- 유튜브 아이프레임 (autoplay=1 설정) -->
             <iframe id="yt-player" src="" allow="autoplay"></iframe>
         </div>
     </div>
@@ -221,14 +220,13 @@
     <footer></footer>
 
     <script>
-        // 테스트용 설정: 오후 5시 0분 0초 (17:00:00)
+        // 테스트할 시간 설정 (예: 오후 4시 40분 0초로 테스트하려면 아래 수정)
         const targetHour = 16;
-        const targetMinute = 35;
+        const targetMinute = 40;
         const targetSecond = 0;
         
-        // 재생할 유튜브 영상 ID (예시 영상: 원하시는 유튜브 영상 주소의 v= 뒤쪽 코드 입력)
-        // 예: https://www.youtube.com/watch?v=ABC123XYZ 라면 'ABC123XYZ' 입력
-        const youtubeVideoId = 'dQw4w9WgXcQ'; 
+        // 재생할 유튜브 영상의 ID만 입력하세요 (예: https://youtu.be/6bNQtSp0L1U 라면 '6bNQtSp0L1U' 입력)
+        const youtubeVideoId = '6bNQtSp0L1U'; 
         const playDurationSeconds = 90; // 1분 30초 (90초)
 
         let isVideoPlayed = false;
@@ -239,7 +237,7 @@
             const minutes = now.getMinutes();
             const seconds = now.getSeconds();
             
-            // 오후 5시 정각 체크 (오늘 하루에 한 번만 실행되도록 isVideoPlayed 확인)
+            // 지정된 시간이 되면 하루에 딱 한 번 실행
             if (!isVideoPlayed && hours === targetHour && minutes === targetMinute && seconds >= targetSecond) {
                 startYoutubePlayback();
             }
@@ -268,14 +266,14 @@
             const modal = document.getElementById('youtube-modal');
             const player = document.getElementById('yt-player');
             
-            // 유튜브 자동 재생 링크 연결 (autoplay=1)
-            player.src = `https://www.youtube.com/embed/6bNQtSp0L1U?si=70zAPZS-fAMCIHPo?autoplay=1`;
+            // 올바른 유튜브 임베드 주소 조합 (중복 ? 방지)
+            player.src = `https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1`;
             modal.style.display = 'flex';
 
-            // 정확히 1분 30초(90초) 뒤에 모달을 닫고 시계 화면으로 복귀
+            // 1분 30초(90초) 뒤에 모달을 닫고 시계 화면으로 복귀
             setTimeout(() => {
                 modal.style.display = 'none';
-                player.src = ''; // 영상 정지
+                player.src = ''; // 영상 정지 및 초기화
             }, playDurationSeconds * 1000);
         }
 
