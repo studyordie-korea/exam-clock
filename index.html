@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시험용 디지털 시계</title>
+    <!-- 구글 폰트: 디지털 느낌의 폰트 및 깔끔한 가독성 폰트 -->
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --text-color: #212529;
+            --sub-text-color: #6c757d;
+            --panel-bg: #ffffff;
+            --panel-border: #dee2e6;
+            --shadow: rgba(0, 0, 0, 0.05);
+            --digit-bg: #e9ecef;
+            --digit-color: #212529;
+            --colon-color: #adb5bd;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #f8f9fa;
+            --sub-text-color: #adb5bd;
+            --panel-bg: #1e1e1e;
+            --panel-border: #2d2d2d;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --digit-bg: #2a2a2a;
+            --digit-color: #f8f9fa;
+            --colon-color: #495057;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow: hidden;
+        }
+
+        /* 상단 컨트롤러 영역 */
+        header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            z-index: 10;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-preview {
+            max-height: 50px;
+            max-width: 150px;
+            object-fit: contain;
+            display: none;
+        }
+
+        .logo-upload-label {
+            font-size: 0.9rem;
+            color: var(--sub-text-color);
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border: 1px dashed var(--sub-text-color);
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .logo-upload-label:hover {
+            border-color: var(--text-color);
+            color: var(--text-color);
+        }
+
+        #logo-input {
+            display: none;
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        button, .btn-link {
+            background-color: var(--panel-bg);
+            color: var(--text-color);
+            border: 1px solid var(--panel-border);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            box-shadow: 0 2px 4px var(--shadow);
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        /* 중앙 시계 디스플레이 영역 */
+        .clock-main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+            flex: 1;
+        }
+
+        .location-text {
+            font-size: 2rem;
+            color: var(--sub-text-color);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .time-display-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .ampm {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--sub-text-color);
+        }
+
+        /* 디지털 세그먼트 스타일 숫자 박스 */
+        .digital-clock {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11vw;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.2em;
+            color: var(--text-color);
+            letter-spacing: 0.05em;
+        }
+
+        .date-display {
+            font-size: 2.2rem;
+            color: var(--sub-text-color);
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+
+        /* 하단 공간 유지용 빈 푸터 */
+        footer {
+            height: 30px;
+        }
+
+        /* 전체화면 모드 시 여백 최적화 */
+        :fullscreen body, :-webkit-full-screen body {
+            padding: 1.5rem;
+        }
+    </style>
+</head>
+<body data-theme="light">
+
+    <header>
+        <div class="logo-container">
+            <label for="logo-input" class="logo-upload-label" id="upload-label">+ 학교 로고 업로드</label>
+            <input type="file" id="logo-input" accept="image/*">
+            <img id="logo-preview" class="logo-preview" alt="학교 로고">
+        </div>
+        <div class="controls">
+            <button id="theme-btn">다크 모드</button>
+            <button id="fullscreen-btn">전체화면</button>
+        </div>
+    </header>
+
+    <main class="clock-main">
+        <div class="location-text">시험장</div>
+        <div class="time-display-wrapper">
+            <div class="ampm" id="ampm">오전</div>
+            <div class="digital-clock">
+                <span id="hours">00</span><span class="colon">:</span><span id="minutes">00</span><span class="colon">:</span><span id="seconds">00</span>
+            </div>
+        </div>
+        <div class="date-display" id="date">0000년 00월 00일 요일</div>
+    </main>
+
+    <footer></footer>
+
+    <script>
+        // 시간 갱신 함수
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            const ampm = hours >= 12 ? '오후' : '오전';
+            hours = hours % 12;
+            hours = hours ? hours : 12; 
+            const formattedHours = String(hours).padStart(2, '0');
+
+            document.getElementById('ampm').textContent = ampm;
+            document.getElementById('hours').textContent = formattedHours;
+            document.getElementById('minutes').textContent = minutes;
+            document.getElementById('seconds').textContent = seconds;
+
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const day = now.getDate();
+            const weekList = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+            const week = weekList[now.getDay()];
+
+            document.getElementById('date').textContent = `${year}년 ${month}월 ${day}일 ${week}`;
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // 로고 업로드 처리
+        const logoInput = document.getElementById('logo-input');
+        const logoPreview = document.getElementById('logo-preview');
+        const uploadLabel = document.getElementById('upload-label');
+
+        logoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    logoPreview.src = event.target.result;
+                    logoPreview.style.display = 'block';
+                    uploadLabel.style.display = 'none';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 다크/라이트 모드 전환
+        const themeBtn = document.getElementById('theme-btn');
+        const body = document.body;
+
+        themeBtn.addEventListener('click', () => {
+            if (body.getAttribute('data-theme') === 'light') {
+                body.setAttribute('data-theme', 'dark');
+                themeBtn.textContent = '라이트 모드';
+            } else {
+                body.setAttribute('data-theme', 'light');
+                themeBtn.textContent = '다크 모드';
+            }
+        });
+
+        // 전체화면 토글
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    alert(`전체화면을 실행할 수 없습니다: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+
+        // 화면보호기(절전 모드) 방지 - Wake Lock API
+        let wakeLock = null;
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (err) {
+                console.error(`${err.name}, ${err.message}`);
+            }
+        }
+
+        // 페이지 로드 시 및 가시성 변경 시 Wake Lock 유지
+        window.addEventListener('load', requestWakeLock);
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                await requestWakeLock();
+            }
+        });
+    </script>
+</body>
+</html>
