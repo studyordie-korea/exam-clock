@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>시험용 디지털 시계</title>
-    <!-- 구글 폰트: 디지털 느낌의 폰트 및 깔끔한 가독성 폰트 -->
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <!-- 구글 폰트: Oxanium(디지털 숫자) 및 Noto Sans KR -->
+    <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@600;700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-color: #f8f9fa;
@@ -14,9 +14,6 @@
             --panel-bg: #ffffff;
             --panel-border: #dee2e6;
             --shadow: rgba(0, 0, 0, 0.05);
-            --digit-bg: #e9ecef;
-            --digit-color: #212529;
-            --colon-color: #adb5bd;
         }
 
         [data-theme="dark"] {
@@ -26,9 +23,6 @@
             --panel-bg: #1e1e1e;
             --panel-border: #2d2d2d;
             --shadow: rgba(0, 0, 0, 0.3);
-            --digit-bg: #2a2a2a;
-            --digit-color: #f8f9fa;
-            --colon-color: #495057;
         }
 
         * {
@@ -51,7 +45,6 @@
             overflow: hidden;
         }
 
-        /* 상단 컨트롤러 영역 */
         header {
             width: 100%;
             display: flex;
@@ -67,6 +60,12 @@
             gap: 1rem;
         }
 
+        .logo-preview-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
         .logo-preview {
             max-height: 50px;
             max-width: 150px;
@@ -74,19 +73,27 @@
             display: none;
         }
 
-        .logo-upload-label {
+        .logo-upload-label, .logo-delete-btn {
             font-size: 0.9rem;
             color: var(--sub-text-color);
             cursor: pointer;
             padding: 0.5rem 1rem;
             border: 1px dashed var(--sub-text-color);
             border-radius: 6px;
+            background: transparent;
             transition: all 0.2s;
         }
 
-        .logo-upload-label:hover {
+        .logo-upload-label:hover, .logo-delete-btn:hover {
             border-color: var(--text-color);
             color: var(--text-color);
+        }
+
+        .logo-delete-btn {
+            border-style: solid;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            display: none;
         }
 
         #logo-input {
@@ -98,7 +105,7 @@
             gap: 0.75rem;
         }
 
-        button, .btn-link {
+        button {
             background-color: var(--panel-bg);
             color: var(--text-color);
             border: 1px solid var(--panel-border);
@@ -115,7 +122,6 @@
             opacity: 0.85;
         }
 
-        /* 중앙 시계 디스플레이 영역 */
         .clock-main {
             display: flex;
             flex-direction: column;
@@ -148,16 +154,25 @@
             color: var(--sub-text-color);
         }
 
-        /* 디지털 세그먼트 스타일 숫자 박스 */
+        /* 디지털 세그먼트 느낌 및 좁혀진 자간 스타일 */
         .digital-clock {
-            font-family: 'Share Tech Mono', monospace;
+            font-family: 'Oxanium', sans-serif;
             font-size: 11vw;
-            font-weight: bold;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 0.2em;
             color: var(--text-color);
-            letter-spacing: 0.05em;
+            letter-spacing: -0.02em; /* 숫자 사이 간격을 좁게 밀착 */
+        }
+
+        .digit-group {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .colon {
+            padding: 0 0.1em;
+            opacity: 0.7;
         }
 
         .date-display {
@@ -167,12 +182,10 @@
             margin-top: 0.5rem;
         }
 
-        /* 하단 공간 유지용 빈 푸터 */
         footer {
             height: 30px;
         }
 
-        /* 전체화면 모드 시 여백 최적화 */
         :fullscreen body, :-webkit-full-screen body {
             padding: 1.5rem;
         }
@@ -184,7 +197,10 @@
         <div class="logo-container">
             <label for="logo-input" class="logo-upload-label" id="upload-label">+ 학교 로고 업로드</label>
             <input type="file" id="logo-input" accept="image/*">
-            <img id="logo-preview" class="logo-preview" alt="학교 로고">
+            <div class="logo-preview-wrapper" id="preview-wrapper" style="display: none;">
+                <img id="logo-preview" class="logo-preview" alt="학교 로고">
+                <button type="button" id="logo-delete-btn" class="logo-delete-btn">로고 삭제</button>
+            </div>
         </div>
         <div class="controls">
             <button id="theme-btn">다크 모드</button>
@@ -206,7 +222,6 @@
     <footer></footer>
 
     <script>
-        // 시간 갱신 함수
         function updateClock() {
             const now = new Date();
             let hours = now.getHours();
@@ -235,22 +250,53 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // 로고 업로드 처리
+        // 로고 저장 및 불러오기 (LocalStorage 활용)
         const logoInput = document.getElementById('logo-input');
         const logoPreview = document.getElementById('logo-preview');
         const uploadLabel = document.getElementById('upload-label');
+        const previewWrapper = document.getElementById('preview-wrapper');
+        const logoDeleteBtn = document.getElementById('logo-delete-btn');
+
+        // 페이지 로드 시 저장된 로고 확인
+        const savedLogo = localStorage.getItem('school_logo');
+        if (savedLogo) {
+            logoPreview.src = savedLogo;
+            logoPreview.style.display = 'block';
+            previewWrapper.style.display = 'flex';
+            logoDeleteBtn.style.display = 'inline-block';
+            uploadLabel.style.display = 'none';
+        }
 
         logoInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    logoPreview.src = event.target.result;
-                    logoPreview.style.display = 'block';
-                    uploadLabel.style.display = 'none';
+                    const base64Data = event.target.result;
+                    try {
+                        localStorage.setItem('school_logo', base64Data);
+                        logoPreview.src = base64Data;
+                        logoPreview.style.display = 'block';
+                        previewWrapper.style.display = 'flex';
+                        logoDeleteBtn.style.display = 'inline-block';
+                        uploadLabel.style.display = 'none';
+                    } catch (err) {
+                        alert('이미지 용량이 너무 큽니다. 더 작은 용량의 이미지(PNG, JPG)를 업로드해 주세요.');
+                    }
                 }
                 reader.readAsDataURL(file);
             }
+        });
+
+        // 로고 삭제 버튼
+        logoDeleteBtn.addEventListener('click', () => {
+            localStorage.removeItem('school_logo');
+            logoPreview.src = '';
+            logoPreview.style.display = 'none';
+            previewWrapper.style.display = 'none';
+            logoDeleteBtn.style.display = 'none';
+            uploadLabel.style.display = 'inline-block';
+            logoInput.value = '';
         });
 
         // 다크/라이트 모드 전환
@@ -293,7 +339,6 @@
             }
         }
 
-        // 페이지 로드 시 및 가시성 변경 시 Wake Lock 유지
         window.addEventListener('load', requestWakeLock);
         document.addEventListener('visibilitychange', async () => {
             if (wakeLock !== null && document.visibilityState === 'visible') {
