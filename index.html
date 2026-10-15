@@ -59,10 +59,10 @@
             align-items: center;
         }
 
-        /* 고정된 학교 로고 스타일 */
+        /* 학교 로고 크기를 기존보다 2배 확대 (최대 높이 160px) */
         .school-logo {
-            max-height: 80px;
-            max-width: 250px;
+            max-height: 160px;
+            max-width: 500px;
             object-fit: contain;
         }
 
@@ -155,7 +155,7 @@
 
     <header>
         <div class="logo-container">
-            <!-- dgu.png 로고 고정 출력 -->
+            <!-- dgu.png 로고 2배 확대 출력 -->
             <img src="dgu.png" class="school-logo" alt="학교 로고" onerror="this.style.display='none';">
         </div>
         <div class="controls">
@@ -178,7 +178,6 @@
     <footer></footer>
 
     <script>
-        // 시계 및 날짜 업데이트 함수
         function updateClock() {
             const now = new Date();
             let hours = now.getHours();
@@ -237,7 +236,7 @@
             }
         });
 
-        // 스크린세이버 및 절전모드 방지 (Wake Lock API + 사용자 인터랙션 동기화)
+        // 스크린세이버 및 절전모드 방지 (Wake Lock API)
         let wakeLock = null;
         async function requestWakeLock() {
             try {
@@ -245,7 +244,7 @@
                     wakeLock = await navigator.wakeLock.request('screen');
                 }
             } catch (err) {
-                // Wake Lock 예외 무시
+                // 예외 무시
             }
         }
 
