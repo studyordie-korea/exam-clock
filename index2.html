@@ -197,7 +197,7 @@
     </header>
 
     <main class="clock-main">
-        <div class="location-text">시험 안내 영상 자동 재생 대기 중</div>
+        <div class="location-text">.</div>
         <div class="time-display-wrapper">
             <div class="ampm" id="ampm">오전</div>
             <div class="digital-clock">
@@ -219,7 +219,7 @@
 
     <script>
         const targetHour = 17;
-        const targetMinute = 06;
+        const targetMinute = 10;
         const targetSecond = 0;
         
         const youtubeVideoId = '6bNQtSp0L1U'; 
@@ -266,7 +266,7 @@
 
             // 선생님의 아이디어 반영: 0.5초~1초 뒤에 새로고침 효과처럼 주소를 다시 밀어넣어 자동 재생 정책 우회 유도
             setTimeout(() => {
-                player.src = `https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&enablejsapi=1&rel=0`;
+                player.src = `https://www.youtube.com/embed/6bNQtSp0L1U?si=7TqQRBsTz8_F0tSB?autoplay=1&enablejsapi=1&rel=0`;
             }, 800); // 0.8초 딜레이 후 소스 장착
 
             // 1분 30초(90초) 뒤에 모달을 닫고 시계 화면으로 복귀
