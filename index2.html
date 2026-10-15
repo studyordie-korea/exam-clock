@@ -197,7 +197,7 @@
     </header>
 
     <main class="clock-main">
-        <div class="location-text">...</div>
+        <div class="location-text">시험 안내 영상 자동 재생 대기 중</div>
         <div class="time-display-wrapper">
             <div class="ampm" id="ampm">오전</div>
             <div class="digital-clock">
@@ -211,7 +211,6 @@
     <div id="youtube-modal">
         <div class="notice-text">시험 안내 영상 재생 중 (1분 30초 후 시계로 복귀합니다)</div>
         <div class="video-container">
-            <!-- 전체화면 및 자동재생 권한(allowfullscreen, allow) 대폭 강화 -->
             <iframe id="yt-player" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
         </div>
     </div>
@@ -220,7 +219,7 @@
 
     <script>
         const targetHour = 17;
-        const targetMinute = 00;
+        const targetMinute = 06;
         const targetSecond = 0;
         
         const youtubeVideoId = '6bNQtSp0L1U'; 
@@ -261,13 +260,20 @@
             const modal = document.getElementById('youtube-modal');
             const player = document.getElementById('yt-player');
             
-            player.src = `https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&enablejsapi=1`;
+            // 1단계: 모달을 먼저 띄우고 빈 상태로 세팅
             modal.style.display = 'flex';
+            player.src = '';
 
+            // 선생님의 아이디어 반영: 0.5초~1초 뒤에 새로고침 효과처럼 주소를 다시 밀어넣어 자동 재생 정책 우회 유도
+            setTimeout(() => {
+                player.src = `https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&enablejsapi=1&rel=0`;
+            }, 800); // 0.8초 딜레이 후 소스 장착
+
+            // 1분 30초(90초) 뒤에 모달을 닫고 시계 화면으로 복귀
             setTimeout(() => {
                 modal.style.display = 'none';
                 player.src = ''; 
-            }, playDurationSeconds * 1000);
+            }, (playDurationSeconds * 1000) + 800);
         }
 
         setInterval(updateClock, 1000);
