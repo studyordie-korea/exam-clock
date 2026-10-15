@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시험용 디지털 시계 (유튜브 자동 재생 테스트)</title>
+    <!-- 구글 폰트: Oxanium(디지털 숫자) 및 Noto Sans KR -->
+    <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@600;700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --text-color: #212529;
+            --sub-text-color: #6c757d;
+            --panel-bg: #ffffff;
+            --panel-border: #dee2e6;
+            --shadow: rgba(0, 0, 0, 0.05);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #f8f9fa;
+            --sub-text-color: #adb5bd;
+            --panel-bg: #1e1e1e;
+            --panel-border: #2d2d2d;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow: hidden;
+        }
+
+        header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            z-index: 10;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .school-logo {
+            max-height: 160px;
+            max-width: 500px;
+            object-fit: contain;
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        button {
+            background-color: var(--panel-bg);
+            color: var(--text-color);
+            border: 1px solid var(--panel-border);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            box-shadow: 0 2px 4px var(--shadow);
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        .clock-main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+            flex: 1;
+        }
+
+        .location-text {
+            font-size: 2rem;
+            color: var(--sub-text-color);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .time-display-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .ampm {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--sub-text-color);
+        }
+
+        .digital-clock {
+            font-family: 'Oxanium', sans-serif;
+            font-size: 11vw;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            color: var(--text-color);
+            letter-spacing: -0.02em;
+        }
+
+        .colon {
+            padding: 0 0.1em;
+            opacity: 0.7;
+        }
+
+        .date-display {
+            font-size: 2.2rem;
+            color: var(--sub-text-color);
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+
+        /* 유튜브 재생 오버레이 모달 창 스타일 */
+        #youtube-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+
+        .video-container {
+            width: 80vw;
+            height: 80vh;
+            max-width: 1280px;
+            max-height: 720px;
+        }
+
+        .video-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 12px;
+        }
+
+        .notice-text {
+            color: #ffffff;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        footer {
+            height: 30px;
+        }
+
+        :fullscreen body, :-webkit-full-screen body {
+            padding: 1.5rem;
+        }
+    </style>
+</head>
+<body data-theme="light">
+
+    <header>
+        <div class="logo-container">
+            <img src="dgu.png" class="school-logo" alt="학교 로고" onerror="this.style.display='none';">
+        </div>
+        <div class="controls">
+            <button id="theme-btn">다크 모드</button>
+            <button id="fullscreen-btn">전체화면</button>
+        </div>
+    </header>
+
+    <main class="clock-main">
+        <div class="location-text">오후 5시 안내 영상 자동 재생 테스트 중</div>
+        <div class="time-display-wrapper">
+            <div class="ampm" id="ampm">오전</div>
+            <div class="digital-clock">
+                <span id="hours">00</span><span class="colon">:</span><span id="minutes">00</span><span class="colon">:</span><span id="seconds">00</span>
+            </div>
+        </div>
+        <div class="date-display" id="date">0000년 00월 00일 요일</div>
+    </main>
+
+    <!-- 유튜브 자동 재생 모달 영역 -->
+    <div id="youtube-modal">
+        <div class="notice-text">시험 안내 영상 재생 중 (1분 30초 후 시계로 복귀합니다)</div>
+        <div class="video-container">
+            <!-- 유튜브 아이프레임 (autoplay=1 설정) -->
+            <iframe id="yt-player" src="" allow="autoplay"></iframe>
+        </div>
+    </div>
+
+    <footer></footer>
+
+    <script>
+        // 테스트용 설정: 오후 5시 0분 0초 (17:00:00)
+        const targetHour = 17;
+        const targetMinute = 0;
+        const targetSecond = 0;
+        
+        // 재생할 유튜브 영상 ID (예시 영상: 원하시는 유튜브 영상 주소의 v= 뒤쪽 코드 입력)
+        // 예: https://www.youtube.com/watch?v=ABC123XYZ 라면 'ABC123XYZ' 입력
+        const youtubeVideoId = 'dQw4w9WgXcQ'; 
+        const playDurationSeconds = 90; // 1분 30초 (90초)
+
+        let isVideoPlayed = false;
+
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            
+            // 오후 5시 정각 체크 (오늘 하루에 한 번만 실행되도록 isVideoPlayed 확인)
+            if (!isVideoPlayed && hours === targetHour && minutes === targetMinute && seconds >= targetSecond) {
+                startYoutubePlayback();
+            }
+
+            const ampm = hours >= 12 ? '오후' : '오전';
+            let displayHours = hours % 12;
+            displayHours = displayHours ? displayHours : 12; 
+            
+            document.getElementById('ampm').textContent = ampm;
+            document.getElementById('hours').textContent = String(displayHours).padStart(2, '0');
+            document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+            document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const day = now.getDate();
+            const weekList = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+            const week = weekList[now.getDay()];
+
+            document.getElementById('date').textContent = `${year}년 ${month}월 ${day}일 ${week}`;
+        }
+
+        // 유튜브 재생 시작 함수
+        function startYoutubePlayback() {
+            isVideoPlayed = true;
+            const modal = document.getElementById('youtube-modal');
+            const player = document.getElementById('yt-player');
+            
+            // 유튜브 자동 재생 링크 연결 (autoplay=1)
+            player.src = `https://www.youtube.com/embed/6bNQtSp0L1U?si=70zAPZS-fAMCIHPo?autoplay=1`;
+            modal.style.display = 'flex';
+
+            // 정확히 1분 30초(90초) 뒤에 모달을 닫고 시계 화면으로 복귀
+            setTimeout(() => {
+                modal.style.display = 'none';
+                player.src = ''; // 영상 정지
+            }, playDurationSeconds * 1000);
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // 다크/라이트 모드 전환
+        const themeBtn = document.getElementById('theme-btn');
+        const body = document.body;
+
+        themeBtn.addEventListener('click', () => {
+            if (body.getAttribute('data-theme') === 'light') {
+                body.setAttribute('data-theme', 'dark');
+                themeBtn.textContent = '라이트 모드';
+            } else {
+                body.setAttribute('data-theme', 'light');
+                themeBtn.textContent = '다크 모드';
+            }
+        });
+
+        // 전체화면 토글
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().then(() => {
+                    requestWakeLock();
+                }).catch(err => {
+                    alert(`전체화면을 실행할 수 없습니다: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+
+        // 스크린세이버 및 절전모드 방지
+        let wakeLock = null;
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator && document.visibilityState === 'visible') {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (err) {}
+        }
+
+        window.addEventListener('load', requestWakeLock);
+        document.addEventListener('visibilitychange', requestWakeLock);
+        
+        ['click', 'mousemove', 'keydown'].forEach(event => {
+            document.addEventListener(event, () => {
+                if (!wakeLock || wakeLock.released) {
+                    requestWakeLock();
+                }
+            }, { passive: true });
+        });
+    </script>
+</body>
+</html>
