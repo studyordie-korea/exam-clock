@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>동국대학교 고사용 디지털 시계</title>
-    <!-- 구글 폰트: Oxanium(디지털 숫자) 및 Noto Sans KR -->
+    <title>시험용 디지털 시계</title>
     <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@600;700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -59,7 +58,6 @@
             align-items: center;
         }
 
-        /* 학교 로고 크기를 기존보다 2배 확대 (최대 높이 160px) */
         .school-logo {
             max-height: 160px;
             max-width: 500px;
@@ -69,6 +67,7 @@
         .controls {
             display: flex;
             gap: 0.75rem;
+            align-items: center;
         }
 
         button {
@@ -86,6 +85,20 @@
 
         button:hover {
             opacity: 0.85;
+        }
+
+        .play-notice-btn {
+            background-color: #dc3545 !important;
+            color: #ffffff !important;
+            font-weight: 700;
+            border: none;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
 
         .clock-main {
@@ -142,6 +155,41 @@
             margin-top: 0.5rem;
         }
 
+        #youtube-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+
+        .video-container {
+            width: 90vw;
+            height: 85vh;
+            max-width: 1440px;
+            max-height: 810px;
+        }
+
+        .video-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 12px;
+        }
+
+        .notice-text {
+            color: #ffffff;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
         footer {
             height: 30px;
         }
@@ -155,17 +203,17 @@
 
     <header>
         <div class="logo-container">
-            <!-- dgu.png 로고 2배 확대 출력 -->
             <img src="dgu.png" class="school-logo" alt="학교 로고" onerror="this.style.display='none';">
         </div>
         <div class="controls">
+            <button id="manual-play-btn" class="play-notice-btn">📢 시험 안내 영상 재생</button>
             <button id="theme-btn">다크 모드</button>
             <button id="fullscreen-btn">전체화면</button>
         </div>
     </header>
 
     <main class="clock-main">
-        <div class="location-text"></div>
+        <div class="location-text">시험장 디지털 시계</div>
         <div class="time-display-wrapper">
             <div class="ampm" id="ampm">오전</div>
             <div class="digital-clock">
@@ -175,24 +223,34 @@
         <div class="date-display" id="date">0000년 00월 00일 요일</div>
     </main>
 
+    <div id="youtube-modal">
+        <div class="notice-text">시험 안내 영상 재생 중 (1분 30초 후 자동으로 시계로 복귀합니다)</div>
+        <div class="video-container">
+            <iframe id="yt-player" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        </div>
+    </div>
+
     <footer></footer>
 
     <script>
+        const youtubeVideoId = '6bNQtSp0L1U'; 
+        const playDurationSeconds = 90; 
+        let timerId = null;
+
         function updateClock() {
             const now = new Date();
             let hours = now.getHours();
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
             
             const ampm = hours >= 12 ? '오후' : '오전';
-            hours = hours % 12;
-            hours = hours ? hours : 12; 
-            const formattedHours = String(hours).padStart(2, '0');
-
+            let displayHours = hours % 12;
+            displayHours = displayHours ? displayHours : 12; 
+            
             document.getElementById('ampm').textContent = ampm;
-            document.getElementById('hours').textContent = formattedHours;
-            document.getElementById('minutes').textContent = minutes;
-            document.getElementById('seconds').textContent = seconds;
+            document.getElementById('hours').textContent = String(displayHours).padStart(2, '0');
+            document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+            document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
 
             const year = now.getFullYear();
             const month = now.getMonth() + 1;
@@ -203,10 +261,44 @@
             document.getElementById('date').textContent = `${year}년 ${month}월 ${day}일 ${week}`;
         }
 
+        function startYoutubePlayback() {
+            const modal = document.getElementById('youtube-modal');
+            const player = document.getElementById('yt-player');
+            
+            player.src = `https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&enablejsapi=1`;
+            modal.style.display = 'flex';
+
+            if (timerId) clearTimeout(timerId);
+
+            timerId = setTimeout(() => {
+                modal.style.display = 'none';
+                player.src = ''; 
+            }, playDurationSeconds * 1000);
+        }
+
+        document.getElementById('manual-play-btn').addEventListener('click', startYoutubePlayback);
+
         setInterval(updateClock, 1000);
         updateClock();
 
-        // 다크/라이트 모드 전환
+        // [핵심] PC 절전 모드 및 꺼짐 방지용 안티 슬립(Anti-Sleep) 시뮬레이터
+        // 3분(180,000밀리초)마다 가상의 마우스 움직임(mousemove) 이벤트를 발생시켜 PC가 깨어있는 상태를 유지하게 합니다.
+        setInterval(() => {
+            const simulatedEvent = new MouseEvent('mousemove', {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                clientX: Math.random() * 100,
+                clientY: Math.random() * 100
+            });
+            document.dispatchEvent(simulatedEvent);
+            
+            // Wake Lock API도 주기적으로 재요청하여 방어력 강화
+            if ('wakeLock' in navigator && document.visibilityState === 'visible') {
+                navigator.wakeLock.request('screen').catch(() => {});
+            }
+        }, 180000); // 3분 주기
+
         const themeBtn = document.getElementById('theme-btn');
         const body = document.body;
 
@@ -220,7 +312,6 @@
             }
         });
 
-        // 전체화면 토글
         const fullscreenBtn = document.getElementById('fullscreen-btn');
         fullscreenBtn.addEventListener('click', () => {
             if (!document.fullscreenElement) {
@@ -236,16 +327,13 @@
             }
         });
 
-        // 스크린세이버 및 절전모드 방지 (Wake Lock API)
         let wakeLock = null;
         async function requestWakeLock() {
             try {
                 if ('wakeLock' in navigator && document.visibilityState === 'visible') {
                     wakeLock = await navigator.wakeLock.request('screen');
                 }
-            } catch (err) {
-                // 예외 무시
-            }
+            } catch (err) {}
         }
 
         window.addEventListener('load', requestWakeLock);
