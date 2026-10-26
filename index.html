@@ -87,20 +87,6 @@
             opacity: 0.85;
         }
 
-        .play-notice-btn {
-            background-color: #dc3545 !important;
-            color: #ffffff !important;
-            font-weight: 700;
-            border: none;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
         .clock-main {
             display: flex;
             flex-direction: column;
@@ -128,14 +114,15 @@
         }
 
         .ampm {
-            font-size: 4rem;
+            font-size: 4.5rem;
             font-weight: 700;
             color: var(--sub-text-color);
         }
 
+        /* 시계 글꼴 크기를 기존보다 약 30% 확대 (11vw -> 14.5vw) */
         .digital-clock {
             font-family: 'Oxanium', sans-serif;
-            font-size: 11vw;
+            font-size: 14.5vw;
             font-weight: 700;
             display: flex;
             align-items: center;
@@ -149,7 +136,7 @@
         }
 
         .date-display {
-            font-size: 2.2rem;
+            font-size: 2.4rem;
             color: var(--sub-text-color);
             font-weight: 500;
             margin-top: 0.5rem;
@@ -206,14 +193,16 @@
             <img src="dgu.png" class="school-logo" alt="학교 로고" onerror="this.style.display='none';">
         </div>
         <div class="controls">
-            <button id="manual-play-btn" class="play-notice-btn">📢 시험 안내 영상 재생</button>
+            <!-- [주석 처리됨] 나중에 필요시 주석을 풀면 상단에 버튼이 다시 나타납니다.
+            <button id="manual-play-btn" class="play-notice-btn" style="background-color: #dc3545; color: #fff; font-weight: 700; border: none;">📢 시험 안내 영상 재생</button>
+            -->
             <button id="theme-btn">다크 모드</button>
             <button id="fullscreen-btn">전체화면</button>
         </div>
     </header>
 
     <main class="clock-main">
-        <div class="location-text">시험장 디지털 시계</div>
+        <div class="location-text"></div>
         <div class="time-display-wrapper">
             <div class="ampm" id="ampm">오전</div>
             <div class="digital-clock">
@@ -276,13 +265,17 @@
             }, playDurationSeconds * 1000);
         }
 
-        document.getElementById('manual-play-btn').addEventListener('click', startYoutubePlayback);
+        /* [주석 처리됨] 영상 재생 버튼 활성화 시 주석 해제 후 사용
+        const playBtn = document.getElementById('manual-play-btn');
+        if (playBtn) {
+            playBtn.addEventListener('click', startYoutubePlayback);
+        }
+        */
 
         setInterval(updateClock, 1000);
         updateClock();
 
-        // [핵심] PC 절전 모드 및 꺼짐 방지용 안티 슬립(Anti-Sleep) 시뮬레이터
-        // 3분(180,000밀리초)마다 가상의 마우스 움직임(mousemove) 이벤트를 발생시켜 PC가 깨어있는 상태를 유지하게 합니다.
+        // PC 절전 모드 및 꺼짐 방지용 안티 슬립(Anti-Sleep) 시뮬레이터 (3분 주기)
         setInterval(() => {
             const simulatedEvent = new MouseEvent('mousemove', {
                 bubbles: true,
@@ -293,11 +286,10 @@
             });
             document.dispatchEvent(simulatedEvent);
             
-            // Wake Lock API도 주기적으로 재요청하여 방어력 강화
             if ('wakeLock' in navigator && document.visibilityState === 'visible') {
                 navigator.wakeLock.request('screen').catch(() => {});
             }
-        }, 180000); // 3분 주기
+        }, 180000);
 
         const themeBtn = document.getElementById('theme-btn');
         const body = document.body;
