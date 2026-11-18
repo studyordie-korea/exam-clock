@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>동국대학교 고사용 디지털 시계</title>
+    <title>시험용 디지털 시계 (안전형 서버 시간 연동)</title>
     <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@600;700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -67,6 +67,7 @@
         .controls {
             display: flex;
             gap: 0.75rem;
+            align-items: center;
         }
 
         button {
@@ -113,14 +114,14 @@
         }
 
         .ampm {
-            font-size: 4rem;
+            font-size: 4.5rem;
             font-weight: 700;
             color: var(--sub-text-color);
         }
 
         .digital-clock {
             font-family: 'Oxanium', sans-serif;
-            font-size: 11vw;
+            font-size: 14.5vw;
             font-weight: 700;
             display: flex;
             align-items: center;
@@ -134,7 +135,7 @@
         }
 
         .date-display {
-            font-size: 2.2rem;
+            font-size: 2.4rem;
             color: var(--sub-text-color);
             font-weight: 500;
             margin-top: 0.5rem;
@@ -191,13 +192,16 @@
             <img src="dgu.png" class="school-logo" alt="학교 로고" onerror="this.style.display='none';">
         </div>
         <div class="controls">
+            <!-- [주석 처리됨] 나중에 필요시 주석 해제 후 사용
+            <button id="manual-play-btn" class="play-notice-btn" style="background-color: #dc3545; color: #fff; font-weight: 700; border: none;">📢 시험 안내 영상 재생</button>
+            -->
             <button id="theme-btn">다크 모드</button>
             <button id="fullscreen-btn">전체화면</button>
         </div>
     </header>
 
     <main class="clock-main">
-        <div class="location-text">.</div>
+        <div class="location-text"></div>
         <div class="time-display-wrapper">
             <div class="ampm" id="ampm">오전</div>
             <div class="digital-clock">
@@ -207,9 +211,8 @@
         <div class="date-display" id="date">0000년 00월 00일 요일</div>
     </main>
 
-    <!-- 유튜브 자동 재생 모달 영역 -->
     <div id="youtube-modal">
-        <div class="notice-text">시험 안내 영상 재생 중 (1분 30초 후 시계로 복귀합니다)</div>
+        <div class="notice-text">시험 안내 영상 재생 중 (1분 30초 후 자동으로 시계로 복귀합니다)</div>
         <div class="video-container">
             <iframe id="yt-player" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
         </div>
@@ -218,25 +221,42 @@
     <footer></footer>
 
     <script>
-        const targetHour = 17;
-        const targetMinute = 13;
-        const targetSecond = 0;
-        
         const youtubeVideoId = '6bNQtSp0L1U'; 
-        const playDurationSeconds = 100; 
+        const playDurationSeconds = 90; 
+        let timerId = null;
 
-        let isVideoPlayed = false;
+        let timeOffset = 0;
+        let isUsingServerTime = false; // 서버 시간 정상 연동 여부 플래그
+
+        // 한국 표준시(KST) 서버 시간 동기화 함수 (안전장치 포함)
+        async function syncServerTime() {
+            try {
+                const response = await fetch('https://worldtimeapi.org/api/timezone/Asia/Seoul', { cache: 'no-store' });
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+                const serverTime = new Date(data.datetime).getTime();
+                const localTime = new Date().getTime();
+                
+                timeOffset = serverTime - localTime;
+                isUsingServerTime = true; // 서버 시간 연동 성공
+            } catch (error) {
+                // 네트워크 장애나 차단 발생 시 자동으로 PC 로컬 시간 모드로 안전하게 전환
+                isUsingServerTime = false;
+                timeOffset = 0;
+            }
+        }
+
+        // 페이지 최초 로드 시 동기화 및 5분마다 재동기화 시도
+        syncServerTime();
+        setInterval(syncServerTime, 300000);
 
         function updateClock() {
-            const now = new Date();
+            // 서버 시간 연동 성공 시 오차를 반영하고, 장애 시 PC 로컬 시간으로 안전하게 표시
+            const now = new Date(new Date().getTime() + timeOffset);
             let hours = now.getHours();
             const minutes = now.getMinutes();
             const seconds = now.getSeconds();
             
-            if (!isVideoPlayed && hours === targetHour && minutes === targetMinute && seconds >= targetSecond) {
-                startYoutubePlayback();
-            }
-
             const ampm = hours >= 12 ? '오후' : '오전';
             let displayHours = hours % 12;
             displayHours = displayHours ? displayHours : 12; 
@@ -256,28 +276,45 @@
         }
 
         function startYoutubePlayback() {
-            isVideoPlayed = true;
             const modal = document.getElementById('youtube-modal');
             const player = document.getElementById('yt-player');
             
-            // 1단계: 모달을 먼저 띄우고 빈 상태로 세팅
+            player.src = `https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&enablejsapi=1`;
             modal.style.display = 'flex';
-            player.src = '';
 
-            // 선생님의 아이디어 반영: 0.5초~1초 뒤에 새로고침 효과처럼 주소를 다시 밀어넣어 자동 재생 정책 우회 유도
-            setTimeout(() => {
-                player.src = `https://www.youtube.com/embed/6bNQtSp0L1U?si=7TqQRBsTz8_F0tSB?autoplay=1&enablejsapi=1&rel=0`;
-            }, 800); // 0.8초 딜레이 후 소스 장착
+            if (timerId) clearTimeout(timerId);
 
-            // 1분 30초(90초) 뒤에 모달을 닫고 시계 화면으로 복귀
-            setTimeout(() => {
+            timerId = setTimeout(() => {
                 modal.style.display = 'none';
                 player.src = ''; 
-            }, (playDurationSeconds * 1000) + 800);
+            }, playDurationSeconds * 1000);
         }
+
+        /* [주석 처리됨] 영상 재생 버튼 활성화 시 주석 해제 후 사용
+        const playBtn = document.getElementById('manual-play-btn');
+        if (playBtn) {
+            playBtn.addEventListener('click', startYoutubePlayback);
+        }
+        */
 
         setInterval(updateClock, 1000);
         updateClock();
+
+        // PC 절전 모드 및 꺼짐 방지용 안티 슬립(Anti-Sleep) 시뮬레이터 (3분 주기)
+        setInterval(() => {
+            const simulatedEvent = new MouseEvent('mousemove', {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                clientX: Math.random() * 100,
+                clientY: Math.random() * 100
+            });
+            document.dispatchEvent(simulatedEvent);
+            
+            if ('wakeLock' in navigator && document.visibilityState === 'visible') {
+                navigator.wakeLock.request('screen').catch(() => {});
+            }
+        }, 180000);
 
         const themeBtn = document.getElementById('theme-btn');
         const body = document.body;
